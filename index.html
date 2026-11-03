@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Thư mời Lễ Tốt Nghiệp</title>
+  <meta name="description" content="Thư mời dự lễ tốt nghiệp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,500;1,700&family=Be+Vietnam+Pro:wght@300;400;600;700;800;900&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Nền bầu trời đêm -->
+  <div class="bg" aria-hidden="true">
+    <span class="blob b1"></span><span class="blob b2"></span>
+    <span class="blob b3"></span><span class="blob b4"></span>
+    <span class="stars s1"></span><span class="stars s2"></span>
+  </div>
+
+  <!-- Lớp pháo hoa / pháo giấy -->
+  <canvas id="fx" aria-hidden="true"></canvas>
+
+  <!-- ===================== PHẦN MỞ ĐẦU ===================== -->
+  <div id="stage" class="stage">
+
+    <!-- Cảnh 1: Mình là ... -->
+    <section class="scene" id="scene-me">
+      <div class="hello">
+        <img class="sticker baked me-intro" id="me-intro" src="assets/chibi/cool-pixel.webp" alt="Mình đây">
+        <div class="bubble">Chào cậuuuu!</div>
+      </div>
+      <p class="say lead-in">Tớ là</p>
+      <h2 class="say name-me" id="intro-me"></h2>
+    </section>
+
+    <!-- Cảnh 2: còn cậu là ... (người xem tự nhập tên) -->
+    <section class="scene" id="scene-you">
+      <div class="rays" aria-hidden="true"></div>
+      <div class="floaties" id="floaties" aria-hidden="true"></div>
+      <img class="sticker st-heart" src="assets/sticker-heart.svg" alt="">
+      <img class="sticker st-star" src="assets/sticker-star.svg" alt="">
+      <img class="sticker baked chibi-think" src="assets/chibi/thinking.webp" alt="">
+      <p class="say lead-in" id="you-lead">còn cậu là<span class="dots"><i>.</i><i>.</i><i>.</i></span></p>
+      <form class="name-form" id="name-form" autocomplete="off" novalidate>
+        <input id="name-input" class="name-input" type="text" maxlength="30"
+               placeholder="Nhập tên của cậu" aria-label="Tên của cậu" enterkeyhint="done">
+        <button class="btn-go" type="submit">Chuẩn không cần chỉnh ✨</button>
+        <p class="name-error" id="name-error" aria-live="polite"></p>
+      </form>
+      <div class="name-wrap">
+        <h2 class="say name-you" id="intro-you"></h2>
+        <svg class="swoosh" viewBox="0 0 300 24" aria-hidden="true"><path d="M6 16 Q 80 4 150 13 T 294 9"/></svg>
+      </div>
+      <div class="you-row">
+        <img class="sticker baked chibi-heart" src="assets/chibi/nice.webp" alt="">
+        <p class="say-bubble">Đúng người mình muốn nghe rùi! 😆</p>
+      </div>
+    </section>
+
+    <!-- Cảnh 3: Mình tốt nghiệp rồi! -->
+    <section class="scene" id="scene-news">
+      <p class="say lead-in">Tớ có tin vui muốn khoe với cậu…</p>
+      <img class="sticker baked chibi-cheer" src="assets/chibi/cheer.webp" alt="">
+      <img class="sticker st-yay" src="assets/sticker-yay.svg" alt="">
+      <h2 class="say mega" id="intro-news"></h2>
+    </section>
+
+    <!-- Cảnh 4: Phong bì -->
+    <section class="scene" id="scene-envelope">
+      <p class="say lead-in">Và tớ muốn mời cậu đến chung vui 💙</p>
+      <div class="envelope" id="envelope" role="button" tabindex="0" aria-label="Mở thư mời">
+        <div class="env-back"></div>
+        <div class="env-letter"><span>Thư mời</span></div>
+        <div class="env-front"></div>
+        <div class="env-flap"></div>
+        <div class="env-seal" aria-hidden="true">🎓</div>
+        <img class="sticker baked chibi-letter" src="assets/chibi/heart-hug.webp" alt="">
+      </div>
+      <p class="env-hint">Chạm vào phong bì để mở thư</p>
+    </section>
+
+    <p class="tap-hint" id="tap-hint">chạm để tiếp tục ›</p>
+  </div>
+
+  <!-- ===================== THƯ MỜI (gói gọn trong 1 màn hình) ===================== -->
+  <main id="invitation" class="invitation" hidden>
+    <article class="card-inv" data-state="king">
+      <svg class="confetti-deco" viewBox="0 0 160 120" aria-hidden="true">
+        <rect x="18" y="14" width="10" height="4" rx="2" fill="#1488db" transform="rotate(35 23 16)"/>
+        <rect x="58" y="8" width="12" height="4" rx="2" fill="#e0b13e" transform="rotate(-20 64 10)"/>
+        <rect x="34" y="46" width="10" height="4" rx="2" fill="#a3deff" transform="rotate(70 39 48)"/>
+        <rect x="96" y="22" width="10" height="4" rx="2" fill="#042b92" transform="rotate(15 101 24)"/>
+        <circle cx="12" cy="40" r="3" fill="#e0b13e"/><circle cx="80" cy="36" r="2.5" fill="#1488db"/>
+        <circle cx="52" cy="72" r="2.5" fill="#042b92"/><circle cx="120" cy="12" r="2" fill="#a3deff"/>
+        <path d="M14 82 l4 -8 l4 8 l-4 -3 z" fill="#e0b13e"/>
+        <path d="M100 52 q4 -6 8 0 t8 0" stroke="#1488db" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      </svg>
+      <button id="boom-btn" class="boom-fab" type="button" aria-label="Bắn pháo hoa chúc mừng" title="Bắn pháo hoa">🎆</button>
+
+      <header class="inv-head reveal">
+        <p class="eyebrow">Trân trọng kính mời</p>
+        <p class="guest script" id="guest-name">Bạn</p>
+        <p class="lead">đến chung vui trong ngày tốt nghiệp của mình</p>
+      </header>
+
+      <div class="arch reveal">
+        <img class="sticker arch-cap" src="assets/sticker-cap.svg" alt="">
+        <div class="arch-frame">
+          <img class="arch-me st-king" id="me-photo-card" src="assets/me/portrait.webp" alt="Ảnh của mình">
+        </div>
+        <span class="arch-badge script">Class of <span id="class-year">2026</span></span>
+      </div>
+
+      <section class="inv-title reveal">
+        <h1>Lễ Tốt Nghiệp</h1>
+        <p class="grad-name" id="grad-name"></p>
+        <p class="grad-info"><span class="gi-degree" id="grad-degree"></span><span class="gi-school" id="grad-school"></span></p>
+      </section>
+
+      <section class="date-block reveal" aria-label="Ngày">
+        <span class="db-side" id="db-weekday"></span>
+        <span class="db-day" id="db-day"></span>
+        <span class="db-side" id="db-month"></span>
+      </section>
+
+      <section class="info-row reveal">
+        <div class="info">
+          <p class="label">Thời gian</p>
+          <p class="info-main" id="time-range"></p>
+          <p class="info-sub" id="time-note"></p>
+        </div>
+        <div class="info">
+          <p class="label">Địa điểm</p>
+          <p class="info-main" id="venue-name"></p>
+          <p class="info-sub" id="venue-address"></p>
+          <a id="map-link" class="map-link" target="_blank" rel="noopener">📍 Xem bản đồ</a>
+        </div>
+      </section>
+
+      <section class="count-wrap reveal" aria-label="Đếm ngược">
+        <div class="countdown" id="countdown">
+          <div><span id="cd-days">00</span><small>ngày</small></div>
+          <div><span id="cd-hours">00</span><small>giờ</small></div>
+          <div><span id="cd-mins">00</span><small>phút</small></div>
+          <div><span id="cd-secs">00</span><small>giây</small></div>
+        </div>
+        <p class="countdown-done" id="countdown-done" hidden></p>
+      </section>
+
+      <!-- Liên hệ: Facebook + số điện thoại (Zalo) -->
+      <section class="contact reveal" id="contact">
+        <a class="contact-pill" id="contact-fb" target="_blank" rel="noopener">
+          <span class="ci ci-fb" data-letter="f"><img data-icon="facebook" alt="Facebook"></span>
+          <span class="contact-text" id="fb-text">Facebook</span>
+        </a>
+        <a class="contact-pill" id="contact-zalo" target="_blank" rel="noopener">
+          <span class="ci ci-zalo" data-letter="Z"><img data-icon="zalo" alt="Zalo"></span>
+          <span class="contact-text" id="zalo-text"></span>
+        </a>
+      </section>
+
+      <!-- Nút dẫn xuống trang hồi âm -->
+      <section class="cta reveal">
+        <button class="cta-btn" id="go-rsvp" type="button">💌 <span id="cta-text">Hồi âm cho mình nhé</span> <span class="cta-arrow">↓</span></button>
+      </section>
+    </article>
+  </main>
+
+  <!-- ===================== TRANG HỒI ÂM ===================== -->
+  <section class="rsvp-page" id="rsvp-page" hidden>
+    <div class="rsvp-card" id="rsvp" data-state="wait">
+      <p class="label">Hồi âm</p>
+      <h2 class="rsvp-title script">Cậu sẽ đến chứ?</h2>
+      <p class="rsvp-sub">Cho mình biết để mình chuẩn bị chu đáo nhé!</p>
+
+      <div class="rsvp-frame" aria-hidden="true">
+        <img class="rs rs-wait" src="assets/me/confused.webp" alt="">
+        <img class="rs rs-yes" src="assets/me/cool.webp" alt="">
+        <img class="rs rs-busy" src="assets/me/cry.webp" alt="">
+      </div>
+
+      <div class="rsvp-buttons">
+        <button class="rsvp-btn yes" type="button" data-answer="yes" aria-pressed="false">Đương nhiên</button>
+        <button class="rsvp-btn busy" type="button" data-answer="busy" aria-pressed="false">Tớ bận rùi</button>
+      </div>
+      <p class="rsvp-msg" id="rsvp-msg" aria-live="polite"></p>
+      <p class="rsvp-status" id="rsvp-status" aria-live="polite"></p>
+      <button class="back-link" id="back-card" type="button">↑ Xem lại thiệp</button>
+    </div>
+  </section>
+
+  <!-- Lời nhắc nổi khi chưa hồi âm -->
+  <button class="rsvp-nudge" id="rsvp-nudge" type="button" aria-hidden="true" tabindex="-1">💌 Cậu chưa hồi âm nè! <b>Trả lời ngay ↓</b></button>
+
+  <script src="fx.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
