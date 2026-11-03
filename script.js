@@ -12,7 +12,7 @@ const CONFIG = {
   start: "2026-11-29T08:00:00+07:00",
   durationHours: 3,   // giờ kết thúc = giờ bắt đầu + số giờ này (đặt 0 nếu chỉ muốn hiện giờ bắt đầu)
 
-  venueName: "Hội trường A3",
+  venueName: "Tòa A3",
   venueAddress: "268 Đ. Lý Thường Kiệt, Diên Hồng, Hồ Chí Minh",
   mapUrl: "https://maps.app.goo.gl/MBMEJ9ifiChC4D2f7", // dán link Google Maps vào đây; để trống thì tự tìm theo địa chỉ
 
@@ -553,6 +553,10 @@ function startRsvpFlow() {
 // =====================================================
 //  KHỞI ĐỘNG
 // =====================================================
+// Tải lại trang: luôn bắt đầu lại từ phần mở đầu, không để trình duyệt tự cuộn về vị trí cũ
+if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+window.scrollTo(0, 0);
+
 document.body.classList.add("locked");
 fillContent();
 buildFilm();
