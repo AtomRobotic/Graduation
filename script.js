@@ -21,6 +21,23 @@ const CONFIG = {
   facebookLabel: "Luân Ngô Đức", // chữ hiện cạnh icon Facebook; để trống thì dùng tên của bạn
   phone: "0868015546",         // số điện thoại có Zalo, ví dụ "0901234567"
 
+  // Ảnh kỷ niệm chạy như thước phim sau khi nhập tên.
+  // Bỏ ảnh vào thư mục assets/memories rồi ghi đường dẫn vào đây; để trống thì hiện khung tạm.
+  memories: [
+    "assets/memories/01.webp",
+    "assets/memories/02.webp",
+    "assets/memories/03.webp",
+    "assets/memories/04.webp",
+    "assets/memories/05.webp",
+    "assets/memories/06.webp",
+    "assets/memories/07.webp",
+    "assets/memories/08.webp",
+    "assets/memories/09.webp",
+    "assets/memories/10.webp",
+    "assets/memories/11.webp",
+    "assets/memories/12.webp",
+  ],   // dải trên chạy theo thứ tự 01 → 12
+
   newsText: "Tớ tốt nghiệp rồi!",
   // Link Web App của Google Apps Script để nhận câu trả lời "Đương nhiên / Tớ bận rùi"
   // (xem hướng dẫn trong file google-apps-script.gs). Để trống thì chỉ lưu trên máy người xem.
@@ -195,11 +212,39 @@ function makeFloaties(n = 16) {
   }
 }
 
+// Dựng 2 dải phim kỷ niệm (mỗi dải lặp 2 lần để chạy vòng liền mạch)
+function buildFilm() {
+  const photos = (CONFIG.memories || []).filter(Boolean);
+  const PH = ["🎓", "📚", "☕", "🏫", "🎉", "📸", "💻", "🌅"];
+  const n = Math.max(8, photos.length);
+  const frame = (i) => {
+    const f = document.createElement("div");
+    f.className = "frame";
+    if (photos.length) {
+      const img = document.createElement("img");
+      img.src = photos[i % photos.length];
+      img.alt = "";
+      img.decoding = "async";
+      f.appendChild(img);
+    } else {
+      f.classList.add("ph");
+      f.innerHTML = PH[i % PH.length] + "<small>ảnh kỷ niệm</small>";
+    }
+    return f;
+  };
+  ["film-a", "film-b"].forEach((id, row) => {
+    const track = $(id);
+    // dải dưới bắt đầu lệch để 2 dải không trùng ảnh
+    const order = Array.from({ length: n }, (_, i) => (i + row * Math.ceil(n / 2)) % n);
+    for (let rep = 0; rep < 2; rep++) order.forEach((i) => track.appendChild(frame(i)));
+  });
+}
+
 // =====================================================
 //  PHẦN MỞ ĐẦU: các cảnh lần lượt
 // =====================================================
 const stage = $("stage");
-const scenes = ["scene-me", "scene-you", "scene-news", "scene-envelope"].map($);
+const scenes = ["scene-me", "scene-you", "scene-memories", "scene-news", "scene-envelope"].map($);
 let current = -1;
 let timers = [];
 let canAdvance = false;
@@ -226,7 +271,13 @@ const SCRIPT = [
       }, 900);
     },
   },
-  { // Cảnh 3: Mình tốt nghiệp rồi!
+  { // Cảnh 3: thước phim kỷ niệm "4 năm / 1 hành trình / cùng vô vàn kỷ niệm" (không pháo hoa)
+    // Không tự chuyển: phim chạy mãi cho tới khi người xem chạm màn hình.
+    run() {
+      showHint(4400);   // hiện "chạm để tiếp tục" sau khi dòng chữ cuối xuất hiện
+    },
+  },
+  { // Cảnh 4: Tớ tốt nghiệp rồi! (bắt đầu có pháo hoa)
     run() {
       later(() => { FX.cannon("left", 80); FX.cannon("right", 80); }, 1500);
       later(() => tossCaps(5), 1700);
@@ -235,7 +286,7 @@ const SCRIPT = [
       later(next, 7600);
     },
   },
-  { // Cảnh 4: phong bì
+  { // Cảnh 5: phong bì
     run() {},
   },
 ];
@@ -504,6 +555,7 @@ function startRsvpFlow() {
 // =====================================================
 document.body.classList.add("locked");
 fillContent();
+buildFilm();
 makeFloaties();
 tick();
 setInterval(tick, 1000);
