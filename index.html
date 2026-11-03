@@ -22,6 +22,10 @@
   <!-- Lớp pháo hoa / pháo giấy -->
   <canvas id="fx" aria-hidden="true"></canvas>
 
+  <!-- Nhạc nền: phát ở lần chạm đầu tiên (trình duyệt không cho tự phát khi vừa mở trang) -->
+  <audio id="bgm" preload="auto" loop playsinline></audio>
+  <button class="music-btn" id="music-btn" type="button" aria-label="Bật nhạc" aria-pressed="false" hidden>🔇</button>
+
   <!-- ===================== PHẦN MỞ ĐẦU ===================== -->
   <div id="stage" class="stage">
 
@@ -55,7 +59,7 @@
       </div>
       <div class="you-row">
         <img class="sticker baked chibi-heart" src="assets/chibi/nice.webp" alt="">
-        <p class="say-bubble">Đúng người mình muốn nghe rùi! 😆</p>
+        <p class="say-bubble">Đúng người mình muốn gặp rùi!!! 😍</p>
       </div>
     </section>
 
@@ -141,6 +145,7 @@
           <p class="label">Thời gian</p>
           <p class="info-main" id="time-range"></p>
           <p class="info-sub" id="time-note"></p>
+          <a id="cal-link" class="map-link" target="_blank" rel="noopener">📅 Nhắc tớ nhé</a>
         </div>
         <div class="info">
           <p class="label">Địa điểm</p>

@@ -38,6 +38,10 @@ const CONFIG = {
     "assets/memories/12.webp",
   ],   // dải trên chạy theo thứ tự 01 → 12
 
+  // Nhạc nền (lặp lại khi hết bài). Để trống music thì không có nhạc và ẩn nút 🔊.
+  music: "assets/music/bgm.mp3",
+  musicVolume: 1,   // 0 → 1; 1 = giữ nguyên âm lượng của file
+
   newsText: "Tớ tốt nghiệp rồi!",
   // Link Web App của Google Apps Script để nhận câu trả lời "Đương nhiên / Tớ bận rùi"
   // (xem hướng dẫn trong file google-apps-script.gs). Để trống thì chỉ lưu trên máy người xem.
@@ -98,6 +102,7 @@ function fillContent() {
   const h = parseInt(hm(startDate), 10);   // "08:00" -> 8
   const buoi = h < 11 ? "Buổi sáng" : h < 13 ? "Buổi trưa" : h < 18 ? "Buổi chiều" : "Buổi tối";
   $("time-note").textContent = buoi + ", " + part({ day: "numeric", month: "numeric", year: "numeric" });
+  setupCalendarLink();
   $("class-year").textContent = part({ year: "numeric" });
 
   $("venue-name").textContent = CONFIG.venueName;
@@ -143,6 +148,37 @@ function fillContact() {
     };
     img.src = srcs[0];
   });
+}
+
+// "Nhắc tớ nhé": thêm buổi lễ vào lịch của người xem
+//   - iPhone / iPad / Mac: mở file .ics -> hiện ngay màn hình "Thêm vào Lịch" của Apple (kèm nhắc trước 1 ngày)
+//   - Android / máy khác: mở Google Calendar với sự kiện điền sẵn
+const ICS_FILE = "assets/le-tot-nghiep.ics";
+function toCalTime(d) {   // 2026-11-29T01:00:00.000Z -> 20261129T010000Z
+  return d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+}
+function setupCalendarLink() {
+  const link = $("cal-link");
+  const title = "Lễ tốt nghiệp của " + CONFIG.graduateName;
+  const where = CONFIG.venueName + ", " + CONFIG.venueAddress;
+  const google = "https://calendar.google.com/calendar/render?action=TEMPLATE" +
+    "&text=" + encodeURIComponent(title) +
+    "&dates=" + toCalTime(startDate) + "/" + toCalTime(endDate) +
+    "&details=" + encodeURIComponent("Hẹn gặp cậu ở lễ tốt nghiệp của " + CONFIG.nickname + " 🎓") +
+    "&location=" + encodeURIComponent(where);
+  link.href = google;
+  const apple = /iPhone|iPad|iPod|Macintosh|Mac OS X/.test(navigator.userAgent);
+  if (!apple) return;
+  // chỉ dùng file .ics nếu nó khớp đúng ngày giờ trong CONFIG (lỡ đổi ngày mà quên cập nhật file thì vẫn dùng Google)
+  fetch(ICS_FILE, { cache: "no-store" })
+    .then((r) => (r.ok ? r.text() : ""))
+    .then((txt) => {
+      if (txt.includes("DTSTART:" + toCalTime(startDate)) && txt.includes("DTEND:" + toCalTime(endDate))) {
+        link.href = ICS_FILE;
+        link.removeAttribute("target");   // mở ngay tại trang, iPhone sẽ hiện bảng "Thêm vào Lịch"
+      }
+    })
+    .catch(() => { /* giữ link Google */ });
 }
 
 // Ghi tên người xem lên phần mở đầu và lên thiệp
@@ -336,7 +372,7 @@ stage.addEventListener("click", (e) => {
   if (canAdvance) next();
 });
 document.addEventListener("keydown", (e) => {
-  if (!stage.isConnected || e.target.tagName === "INPUT") return;
+  if (!stage.isConnected || e.target.tagName === "INPUT" || e.target.tagName === "BUTTON") return;
   if (["Enter", " ", "ArrowRight"].includes(e.key) && canAdvance) { e.preventDefault(); next(); }
 });
 
@@ -383,11 +419,31 @@ $("me-photo-card").addEventListener("click", (e) => {
 });
 
 // Nút bắn pháo hoa
+// Đếm số lần người xem bấm nút pháo hoa -> ghi vào Google Sheet (cột "Số lần bắn pháo hoa").
+// Không gửi mỗi lần bấm: gộp lại, gửi 1 lần sau khi ngừng bấm ~2 giây hoặc khi rời trang.
+let fireworksCount = 0;     // tổng số lần bấm trong lần xem này
+let fireworksPending = 0;   // số lần bấm chưa gửi lên Sheet
+let fireworksTimer = null;
+function flushFireworks() {
+  clearTimeout(fireworksTimer);
+  if (!fireworksPending || !CONFIG.rsvpEndpoint) return;
+  const n = fireworksPending;
+  fireworksPending = 0;
+  postToSheet("fireworks", { count: n }).then((ok) => { if (!ok) fireworksPending += n; });   // lỗi mạng: để gửi lại lần sau
+}
+
 $("boom-btn").addEventListener("click", (e) => {
   e.stopPropagation();
   FX.cannon("left", 80); FX.cannon("right", 80);
   FX.show(6, 3000);
+  fireworksCount += 1;
+  fireworksPending += 1;
+  clearTimeout(fireworksTimer);
+  fireworksTimer = setTimeout(flushFireworks, 2000);
 });
+// rời trang / chuyển tab / khóa máy: gửi ngay số lần còn lại
+document.addEventListener("visibilitychange", () => { if (document.hidden) flushFireworks(); });
+window.addEventListener("pagehide", flushFireworks);
 
 // Chạm vào chỗ trống ngoài thiệp: bắn 1 quả pháo hoa tới chỗ đó
 $("invitation").addEventListener("click", (e) => {
@@ -429,7 +485,7 @@ function rsvpMessage(answer) {
   const who = currentGuest || store.get(NAME_KEY) || "cậu";
   const day = new Intl.DateTimeFormat("vi-VN", { day: "numeric", month: "numeric", timeZone: TZ }).format(startDate);
   return answer === "yes"
-    ? `Yeahhh! Hẹn gặp ${who} ngày ${day} nhé 🎉`
+    ? `Yeahhh! Hẹn gặp ${who} ngày ${day} nhé 😘`
     : `Tiếc ghê… Cảm ơn ${who} đã báo mình nha 💙`;
 }
 
@@ -551,6 +607,70 @@ function startRsvpFlow() {
 })();
 
 // =====================================================
+//  NHẠC NỀN
+// =====================================================
+const bgm = $("bgm");
+const musicBtn = $("music-btn");
+// Mặc định nhạc LUÔN BẬT mỗi lần mở web (không nhớ việc tắt nhạc sang lần sau).
+let musicOff = false;        // người xem tự bấm tắt trong lần xem này
+let resumeOnShow = false;
+
+// Nút hiện 🔊 khi nhạc đang bật (kể cả lúc còn chờ lần chạm đầu tiên để trình duyệt cho phát), 🔇 khi đã tắt
+function setMusicUI() {
+  const on = !musicOff;
+  musicBtn.textContent = on ? "🔊" : "🔇";
+  musicBtn.classList.toggle("on", !bgm.paused);          // vòng sáng nhịp chỉ khi thực sự đang phát
+  musicBtn.setAttribute("aria-pressed", String(on));
+  musicBtn.setAttribute("aria-label", on ? "Tắt nhạc" : "Bật nhạc");
+}
+function playMusic() {
+  const p = bgm.play();
+  if (p && p.catch) p.catch(() => { /* trình duyệt chặn tự phát: chờ lần chạm đầu tiên */ });
+}
+
+// Trình duyệt thường chỉ cho phát nhạc sau khi người xem chạm / bấm phím lần đầu
+const GESTURES = ["pointerup", "touchend", "click", "keydown"];
+function onFirstGesture(e) {
+  if (e.target && e.target.closest && e.target.closest("#music-btn")) return;   // nút nhạc tự xử lý
+  if (!musicOff) playMusic();
+}
+function stopListeningFirstGesture() {
+  GESTURES.forEach((ev) => document.removeEventListener(ev, onFirstGesture, true));
+}
+
+function initMusic() {
+  if (!CONFIG.music) return;              // không cấu hình nhạc: ẩn nút
+  bgm.src = CONFIG.music;
+  bgm.volume = Math.max(0, Math.min(1, CONFIG.musicVolume ?? 1));
+  musicBtn.hidden = false;
+  setMusicUI();
+  bgm.addEventListener("play", () => { setMusicUI(); stopListeningFirstGesture(); });
+  bgm.addEventListener("pause", setMusicUI);
+  GESTURES.forEach((ev) => document.addEventListener(ev, onFirstGesture, true));
+
+  musicBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (!musicOff && bgm.paused) { playMusic(); return; }   // đang chờ được phép phát: lần bấm này cho phát luôn
+    musicOff = !musicOff;
+    if (musicOff) bgm.pause(); else playMusic();
+    setMusicUI();
+  });
+
+  // chuyển tab / khóa màn hình thì tạm dừng, quay lại thì phát tiếp
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      resumeOnShow = !bgm.paused;
+      if (resumeOnShow) bgm.pause();
+    } else if (resumeOnShow && !musicOff) {
+      playMusic();
+    }
+  });
+
+  // thử phát ngay khi mở trang (máy nào cho phép thì có nhạc luôn, không cần chạm)
+  if (!musicOff) playMusic();
+}
+
+// =====================================================
 //  KHỞI ĐỘNG
 // =====================================================
 // Tải lại trang: luôn bắt đầu lại từ phần mở đầu, không để trình duyệt tự cuộn về vị trí cũ
@@ -559,6 +679,7 @@ window.scrollTo(0, 0);
 
 document.body.classList.add("locked");
 fillContent();
+initMusic();
 buildFilm();
 makeFloaties();
 tick();

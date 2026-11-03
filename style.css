@@ -102,6 +102,31 @@ body::before {
 @keyframes drift-c { to { transform: translate(-8vw, 6vh) scale(1.1); } }
 @keyframes twinkle { from { opacity: .3; } to { opacity: .95; } }
 
+/* Nút bật/tắt nhạc nền (góc trên bên trái) */
+.music-btn {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  left: 12px;
+  z-index: 60;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(163,222,255,.45);
+  background: rgba(8,20,60,.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,.35);
+  transition: transform .15s, background .2s;
+}
+.music-btn:hover { transform: scale(1.08); background: rgba(20,136,219,.6); }
+.music-btn:focus-visible { outline: 2px solid var(--sky); outline-offset: 3px; }
+/* đang phát: vòng sáng nhịp nhẹ */
+.music-btn.on { animation: music-pulse 1.8s ease-in-out infinite; }
+@keyframes music-pulse { 0%, 100% { box-shadow: 0 4px 12px rgba(0,0,0,.35), 0 0 0 0 rgba(163,222,255,.45); } 50% { box-shadow: 0 4px 12px rgba(0,0,0,.35), 0 0 0 7px rgba(163,222,255,0); } }
+
 /* Lớp hiệu ứng */
 #fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
 
@@ -567,7 +592,8 @@ body::before {
 .invitation.show { opacity: 1; transform: none; }
 
 .card-inv {
-  --f: clamp(9.5px, 1.75vh, 16px);
+  /* chữ to tối đa mà thiệp vẫn vừa 1 màn hình (thiệp cao ~53.8 lần cỡ chữ) */
+  --f: clamp(9px, min(1.95vh, calc((100vh - 24px) / 53.8)), 17px);
   font-size: var(--f);
   position: relative;
   width: 100%;
@@ -579,7 +605,7 @@ body::before {
   overflow: hidden;
   box-shadow: 0 25px 60px rgba(0,0,0,.5);
 }
-@supports (height: 1svh) { .card-inv { --f: clamp(9.5px, 1.75svh, 16px); } }
+@supports (height: 1svh) { .card-inv { --f: clamp(9px, min(1.95svh, calc((100svh - 24px) / 53.8)), 17px); } }
 .card-inv::before {
   content: "";
   position: absolute;
@@ -590,6 +616,8 @@ body::before {
 }
 .card-inv > * { position: relative; }
 .card-inv > section, .card-inv > .arch { margin-top: .85em; }
+.card-inv > .arch { margin-top: 1.7em; }   /* chừa chỗ cho mũ tốt nghiệp, không đè lên dòng chữ phía trên */
+.card-inv > .count-wrap { margin-top: .6em; }
 
 .script { font-family: var(--script); }
 .confetti-deco { position: absolute !important; top: .5em; left: .3em; width: 7em; height: auto; opacity: .9; }
@@ -614,8 +642,8 @@ body::before {
 
 /* Lời mời */
 .inv-head .eyebrow { text-transform: uppercase; letter-spacing: .32em; font-size: .7em; font-weight: 700; color: var(--gold); }
-.inv-head .guest { font-size: 2.3em; font-weight: 700; color: var(--royal); line-height: 1.12; }
-.inv-head .lead { font-size: .88em; color: var(--muted); font-weight: 300; text-wrap: balance; }
+.inv-head .guest { font-size: 2.5em; font-weight: 700; color: var(--royal); line-height: 1.12; }
+.inv-head .lead { font-size: .96em; color: var(--muted); font-weight: 300; text-wrap: balance; }
 
 /* Khung vòm: 3 chibi xếp chồng (mặc định / đương nhiên / bận) */
 .arch { width: calc(17vh * .8); margin-left: auto; margin-right: auto; }
@@ -646,7 +674,7 @@ body::before {
 .card-inv[data-state="yes"]  .st-yes,
 .card-inv[data-state="busy"] .st-busy { opacity: 1; transform: translateX(-50%) scale(1) rotate(0); }
 .st-king { cursor: pointer; width: 100%; bottom: 0; }   /* ảnh chân dung phủ kín khung vòm */
-.arch-cap { position: absolute; top: -12%; left: -24%; width: 58%; --rot: -18deg; transform: rotate(-18deg); z-index: 2; }
+.arch-cap { position: absolute; top: -9%; left: -26%; width: 58%; --rot: -18deg; transform: rotate(-18deg); z-index: 2; }
 .arch-badge {
   position: absolute;
   left: 50%; bottom: -.9em;
@@ -663,10 +691,10 @@ body::before {
 }
 
 /* Tiêu đề */
-.inv-title { padding-top: .5em; }
-.inv-title h1 { font-family: var(--serif); font-weight: 700; font-size: 2.15em; line-height: 1.1; color: var(--royal); }
-.grad-name { font-weight: 800; font-size: 1em; letter-spacing: .2em; text-transform: uppercase; color: var(--ink); margin-top: .2em; }
-.grad-info { font-size: .8em; color: var(--muted); line-height: 1.45; }
+.inv-title { padding-top: 1.15em; }   /* cách nhãn Class of 2026 ra một chút */
+.inv-title h1 { font-family: var(--serif); font-weight: 700; font-size: 2.3em; line-height: 1.1; color: var(--royal); }
+.grad-name { font-weight: 800; font-size: 1.06em; letter-spacing: .2em; text-transform: uppercase; color: var(--ink); margin-top: .2em; }
+.grad-info { font-size: .88em; color: var(--muted); line-height: 1.45; }
 .grad-info span { display: block; }
 .gi-degree { white-space: nowrap; }   /* ngành học luôn nằm trên 1 dòng */
 
@@ -690,22 +718,26 @@ body::before {
   font-weight: 700;
   white-space: nowrap;
 }
-.db-day { font-family: var(--serif); font-weight: 700; font-size: 3em; line-height: 1; }
+.db-day { font-family: var(--serif); font-weight: 700; font-size: 3.1em; line-height: 1; }
 
 /* Thời gian | Địa điểm */
 .info-row { display: grid; grid-template-columns: 1fr 1fr; gap: .6em; text-align: center; }
-.info { background: var(--ice); border-radius: .9em; padding: .55em .5em .6em; }
-.label { text-transform: uppercase; letter-spacing: .22em; font-size: .64em; font-weight: 700; color: var(--gold); }
-.info-main { font-family: var(--serif); font-weight: 700; font-size: 1.12em; color: var(--royal); line-height: 1.25; }
-.info-sub { font-size: .74em; color: var(--muted); line-height: 1.35; text-wrap: balance; }
-.map-link { display: inline-block; margin-top: .25em; font-size: .76em; font-weight: 700; color: var(--blue); text-decoration: none; border-bottom: 1px solid currentColor; }
+.info { background: var(--ice); border-radius: .9em; padding: .55em .5em .6em;
+  display: flex; flex-direction: column; align-items: center; }
+/* 2 đường dẫn (Nhắc tớ nhé / Xem bản đồ) luôn nằm ngang nhau ở đáy hộp */
+.info .map-link { margin-top: auto; }
+.info .info-sub { margin-bottom: .35em; }
+.label { text-transform: uppercase; letter-spacing: .22em; font-size: .7em; font-weight: 700; color: var(--gold); }
+.info-main { font-family: var(--serif); font-weight: 700; font-size: 1.24em; color: var(--royal); line-height: 1.25; }
+.info-sub { font-size: .82em; color: var(--muted); line-height: 1.35; text-wrap: balance; }
+.map-link { display: inline-block; margin-top: .3em; font-size: .84em; font-weight: 700; color: var(--blue); text-decoration: none; border-bottom: 1px solid currentColor; }
 .map-link:hover { color: var(--royal); }
 
 /* Đếm ngược: 1 dải mỏng */
-.countdown { display: grid; grid-template-columns: repeat(4, 1fr); max-width: 22em; margin: 0 auto; }
+.countdown { display: grid; grid-template-columns: repeat(4, 1fr); max-width: 17em; margin: 0 auto; }
 .countdown div + div { border-left: 1px solid rgba(4,43,146,.15); }
-.countdown span { display: block; font-family: var(--serif); font-weight: 700; font-size: 1.5em; line-height: 1.1; color: var(--royal); font-variant-numeric: tabular-nums; }
-.countdown small { font-size: .62em; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.countdown span { display: block; font-family: var(--serif); font-weight: 700; font-size: 1.08em; line-height: 1.1; color: var(--royal); font-variant-numeric: tabular-nums; }
+.countdown small { font-size: .55em; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .countdown-done { font-family: var(--serif); font-size: 1.1em; color: var(--royal); }
 
 /* Liên hệ */
@@ -722,7 +754,7 @@ body::before {
   border: 1px solid rgba(20,136,219,.25);
   color: var(--royal);
   font-weight: 700;
-  font-size: .85em;
+  font-size: .92em;
   text-decoration: none;
   white-space: nowrap;
   transition: background .2s, transform .15s, border-color .2s;
@@ -746,15 +778,15 @@ body::before {
 .ci.no-icon::after { content: attr(data-letter); font-family: var(--sans); line-height: 1; }
 
 /* Nút dẫn xuống trang hồi âm (cuối thiệp) */
-.cta { margin-top: 1em !important; }
+.cta { margin-top: .8em !important; }
 .cta-btn {
   font: inherit;
-  font-size: 1.05em;
+  font-size: .9em;
   font-weight: 800;
   color: #fff;
   border: none;
   border-radius: 999px;
-  padding: .8em 1.6em;
+  padding: .6em 1.3em;
   cursor: pointer;
   background: linear-gradient(100deg, var(--royal), var(--blue), #5fb8f0, var(--blue), var(--royal));
   background-size: 250% 100%;
