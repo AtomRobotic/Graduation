@@ -9,8 +9,11 @@ const CONFIG = {
   photo: "assets/me/portrait.webp",   // ảnh trong khung vòm giữa thiệp
 
   // Ngày giờ bắt đầu, giữ nguyên định dạng và đuôi +07:00 (giờ Việt Nam)
-  start: "2026-11-29T08:00:00+07:00",
-  durationHours: 3,   // giờ kết thúc = giờ bắt đầu + số giờ này (đặt 0 nếu chỉ muốn hiện giờ bắt đầu)
+  date: "2026-11-28",              // ngày làm lễ (năm-tháng-ngày)
+  sessions: [                      // các khung giờ trong ngày (giờ Việt Nam), thêm/bớt dòng tùy ý
+    { from: "13:00", to: "15:30" },
+    { from: "17:00", to: "18:00" },
+  ],
 
   venueName: "Tòa A3",
   venueAddress: "268 Đ. Lý Thường Kiệt, Diên Hồng, Hồ Chí Minh",
@@ -51,8 +54,10 @@ const CONFIG = {
 
 const $ = (id) => document.getElementById(id);
 const TZ = "Asia/Ho_Chi_Minh";
-const startDate = new Date(CONFIG.start);
-const endDate = new Date(startDate.getTime() + CONFIG.durationHours * 3600 * 1000);
+const at = (hhmm) => new Date(`${CONFIG.date}T${hhmm}:00+07:00`);
+const SESSIONS = CONFIG.sessions.map((s) => ({ start: at(s.from), end: at(s.to) }));
+const startDate = SESSIONS[0].start;                    // giờ bắt đầu sớm nhất (dùng cho đếm ngược)
+const endDate = SESSIONS[SESSIONS.length - 1].end;      // giờ kết thúc muộn nhất
 const NAME_KEY = "grad-invite-guest";
 
 // Tên gợi ý sẵn trong ô nhập: lấy từ link (?ten=Minh) hoặc lần trước đã nhập
@@ -98,7 +103,15 @@ function fillContent() {
 
   // Mục THỜI GIAN: 08:00 – 11:00, kèm buổi trong ngày
   const hm = (d) => new Intl.DateTimeFormat("vi-VN", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: TZ }).format(d);
-  $("time-range").textContent = CONFIG.durationHours > 0 ? hm(startDate) + " – " + hm(endDate) : hm(startDate);
+  const range = $("time-range");
+  range.textContent = "";
+  SESSIONS.forEach((s) => {
+    const line = document.createElement("span");
+    line.className = "slot";
+    line.textContent = hm(s.start) + " – " + hm(s.end);
+    range.appendChild(line);
+  });
+  range.classList.toggle("multi", SESSIONS.length > 1);
   const h = parseInt(hm(startDate), 10);   // "08:00" -> 8
   const buoi = h < 11 ? "Buổi sáng" : h < 13 ? "Buổi trưa" : h < 18 ? "Buổi chiều" : "Buổi tối";
   $("time-note").textContent = buoi + ", " + part({ day: "numeric", month: "numeric", year: "numeric" });
@@ -150,20 +163,21 @@ function fillContact() {
   });
 }
 
-// "Nhắc tớ nhé": thêm buổi lễ vào lịch của người xem
-//   - iPhone / iPad / Mac: mở file .ics -> hiện ngay màn hình "Thêm vào Lịch" của Apple (kèm nhắc trước 1 ngày)
+// "Nhắc tớ nhé": thêm vào lịch của người xem 1 sự kiện = khung giờ ĐẦU TIÊN (13:00 – 15:00)
+//   - iPhone / iPad / Mac: mở file .ics -> hiện ngay màn hình "Thêm vào Lịch" của Apple (kèm nhắc trước 1 ngày, 1 tiếng)
 //   - Android / máy khác: mở Google Calendar với sự kiện điền sẵn
 const ICS_FILE = "assets/le-tot-nghiep.ics";
 function toCalTime(d) {   // 2026-11-29T01:00:00.000Z -> 20261129T010000Z
   return d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
 }
+const CAL = SESSIONS[0];   // sự kiện thêm vào lịch: khung giờ đầu tiên
 function setupCalendarLink() {
   const link = $("cal-link");
   const title = "Lễ tốt nghiệp của " + CONFIG.graduateName;
   const where = CONFIG.venueName + ", " + CONFIG.venueAddress;
   const google = "https://calendar.google.com/calendar/render?action=TEMPLATE" +
     "&text=" + encodeURIComponent(title) +
-    "&dates=" + toCalTime(startDate) + "/" + toCalTime(endDate) +
+    "&dates=" + toCalTime(CAL.start) + "/" + toCalTime(CAL.end) +
     "&details=" + encodeURIComponent("Hẹn gặp cậu ở lễ tốt nghiệp của " + CONFIG.nickname + " 🎓") +
     "&location=" + encodeURIComponent(where);
   link.href = google;
@@ -173,7 +187,7 @@ function setupCalendarLink() {
   fetch(ICS_FILE, { cache: "no-store" })
     .then((r) => (r.ok ? r.text() : ""))
     .then((txt) => {
-      if (txt.includes("DTSTART:" + toCalTime(startDate)) && txt.includes("DTEND:" + toCalTime(endDate))) {
+      if (txt.includes("DTSTART:" + toCalTime(CAL.start)) && txt.includes("DTEND:" + toCalTime(CAL.end))) {
         link.href = ICS_FILE;
         link.removeAttribute("target");   // mở ngay tại trang, iPhone sẽ hiện bảng "Thêm vào Lịch"
       }
@@ -249,8 +263,17 @@ function makeFloaties(n = 16) {
 }
 
 // Dựng 2 dải phim kỷ niệm (mỗi dải lặp 2 lần để chạy vòng liền mạch)
+function shuffle(arr) {   // xáo trộn ngẫu nhiên (Fisher–Yates)
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 function buildFilm() {
-  const photos = (CONFIG.memories || []).filter(Boolean);
+  // mỗi lần mở web, thứ tự ảnh kỷ niệm được xáo ngẫu nhiên
+  const photos = shuffle((CONFIG.memories || []).filter(Boolean));
   const PH = ["🎓", "📚", "☕", "🏫", "🎉", "📸", "💻", "🌅"];
   const n = Math.max(8, photos.length);
   const frame = (i) => {
@@ -270,7 +293,7 @@ function buildFilm() {
   };
   ["film-a", "film-b"].forEach((id, row) => {
     const track = $(id);
-    // dải dưới bắt đầu lệch để 2 dải không trùng ảnh
+    // dải dưới bắt đầu lệch nửa vòng để 2 dải không hiện cùng 1 ảnh một lúc
     const order = Array.from({ length: n }, (_, i) => (i + row * Math.ceil(n / 2)) % n);
     for (let rep = 0; rep < 2; rep++) order.forEach((i) => track.appendChild(frame(i)));
   });
@@ -295,8 +318,7 @@ function showHint(ms) {
 const SCRIPT = [
   { // Cảnh 1: Mình là ... (không pháo hoa)
     run() {
-      showHint(2700);
-      later(next, 5600);
+      showHint(2700);   // không tự chuyển: người xem chạm để sang cảnh tiếp
     },
   },
   { // Cảnh 2: còn cậu là ... (chờ người xem nhập tên)
@@ -318,8 +340,7 @@ const SCRIPT = [
       later(() => { FX.cannon("left", 80); FX.cannon("right", 80); }, 1500);
       later(() => tossCaps(5), 1700);
       later(() => FX.show(4, 2400), 2000);
-      showHint(3800);
-      later(next, 7600);
+      showHint(3800);   // không tự chuyển
     },
   },
   { // Cảnh 5: phong bì
@@ -363,8 +384,7 @@ $("name-form").addEventListener("submit", (e) => {
   setGuest(name);
   postToSheet("name");                         // lưu tên lên Google Sheet ngay (chưa cần hồi âm)
   $("scene-you").classList.add("revealed");   // không pháo hoa ở cảnh này
-  showHint(2600);
-  later(next, 6800);
+  showHint(2600);   // không tự chuyển
 });
 
 stage.addEventListener("click", (e) => {
