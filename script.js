@@ -202,6 +202,8 @@ function setGuest(name) {
   splitText($("intro-you"), name);
   $("intro-you").classList.toggle("long", name.length > 14);
   $("guest-name").textContent = name;
+  $("guest-name").classList.toggle("long", name.length > 15);
+  $("guest-name").classList.toggle("xlong", name.length > 21);
   document.title = "Thư mời " + name + " | Lễ tốt nghiệp của " + CONFIG.graduateName;
   try { localStorage.setItem(NAME_KEY, name); } catch (e) { /* bỏ qua nếu trình duyệt chặn */ }
 }
@@ -370,10 +372,18 @@ function next() {
   if (current < scenes.length - 1) goTo(current + 1);
 }
 
+let nudgedName = null;   // đã nhắc "thêm họ / tên lót" cho tên này chưa
+
 // Người xem nhập tên xong
 $("name-form").addEventListener("submit", (e) => {
   e.preventDefault();
   const name = $("name-input").value.trim().replace(/\s+/g, " ");
+  if (name && !name.includes(" ") && nudgedName !== name) {
+    nudgedName = name;
+    $("name-error").textContent = "Thêm họ hoặc tên lót giúp tớ nhé, để tớ biết chính xác là ai 😉 (bấm lần nữa nếu vẫn giữ nguyên)";
+    $("name-input").focus();
+    return;
+  }
   if (!name) {
     $("name-error").textContent = "Cho mình biết tên cậu nhé 😊";
     $("name-input").focus();
@@ -651,6 +661,7 @@ function playMusic() {
 // Trình duyệt thường chỉ cho phát nhạc sau khi người xem chạm / bấm phím lần đầu
 const GESTURES = ["pointerup", "touchend", "click", "keydown"];
 function onFirstGesture(e) {
+  if (gateOpen) return;                                                          // đang hiện thông báo bật loa: chờ bấm "Đóng"
   if (e.target && e.target.closest && e.target.closest("#music-btn")) return;   // nút nhạc tự xử lý
   if (!musicOff) playMusic();
 }
@@ -686,8 +697,31 @@ function initMusic() {
     }
   });
 
-  // thử phát ngay khi mở trang (máy nào cho phép thì có nhạc luôn, không cần chạm)
-  if (!musicOff) playMusic();
+  // có thông báo bật loa: nhạc bắt đầu khi bấm "Đóng" (xem openSoundGate)
+}
+
+// =====================================================
+//  THÔNG BÁO BẬT LOA (hiện ngay khi mở link)
+// =====================================================
+let gateOpen = false;
+function openSoundGate(onDone) {
+  const gate = $("sound-gate");
+  if (!CONFIG.music) { gate.remove(); onDone(); return; }   // không có nhạc thì bỏ qua thông báo
+  gateOpen = true;
+  gate.hidden = false;
+  requestAnimationFrame(() => gate.classList.add("show"));
+  if (matchMedia("(hover: hover)").matches) setTimeout(() => $("sg-close").focus(), 350);
+  $("sg-close").addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (!gateOpen) return;
+    gateOpen = false;
+    musicOff = false;
+    playMusic();          // gọi ngay trong lúc bấm để iPhone cho phép phát nhạc
+    setMusicUI();
+    gate.classList.remove("show");
+    gate.classList.add("hide");
+    setTimeout(() => { gate.remove(); onDone(); }, 420);
+  });
 }
 
 // =====================================================
@@ -704,4 +738,4 @@ buildFilm();
 makeFloaties();
 tick();
 setInterval(tick, 1000);
-goTo(0);
+openSoundGate(() => goTo(0));

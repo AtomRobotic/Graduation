@@ -26,6 +26,20 @@
   <audio id="bgm" preload="auto" loop playsinline></audio>
   <button class="music-btn" id="music-btn" type="button" aria-label="Bật nhạc" aria-pressed="false" hidden>🔇</button>
 
+  <!-- Thông báo bật loa: hiện ngay khi mở link. Bấm "Đóng" thì nhạc bắt đầu phát và phần mở đầu mới chạy -->
+  <div class="sound-gate" id="sound-gate" role="dialog" aria-modal="true" aria-labelledby="sg-title" hidden>
+    <div class="sg-card">
+      <div class="sg-icon" aria-hidden="true">
+        <span class="sg-note n1">♪</span><span class="sg-note n2">♫</span><span class="sg-note n3">♪</span>
+        <span class="sg-head">🎧</span>
+      </div>
+      <p class="sg-title script" id="sg-title">Ê khoan đã!</p>
+      <p class="sg-text">Thiệp này có <b>nhạc nền</b> đó nha 🎶<br>Cậu <b>mở loa</b> hoặc đeo tai nghe để thưởng thức trọn vẹn nhé!</p>
+      <p class="sg-tip">📱 Dùng iPhone thì nhớ gạt tắt chế độ im lặng nha</p>
+      <button class="sg-close" id="sg-close" type="button">Đóng</button>
+    </div>
+  </div>
+
   <!-- ===================== PHẦN MỞ ĐẦU ===================== -->
   <div id="stage" class="stage">
 
@@ -48,8 +62,9 @@
       <img class="sticker baked chibi-think" src="assets/chibi/thinking.webp" alt="">
       <p class="say lead-in" id="you-lead">còn cậu là<span class="dots"><i>.</i><i>.</i><i>.</i></span></p>
       <form class="name-form" id="name-form" autocomplete="off" novalidate>
-        <input id="name-input" class="name-input" type="text" maxlength="30"
-               placeholder="Nhập tên của cậu" aria-label="Tên của cậu" enterkeyhint="done">
+        <input id="name-input" class="name-input" type="text" maxlength="40"
+               placeholder="Họ tên hoặc tên lót + tên" aria-label="Họ tên của cậu" aria-describedby="name-hint" enterkeyhint="done">
+        <p class="name-hint" id="name-hint">Ví dụ: <b>Ngô Đức Luân</b> hoặc <b>Đức Luân</b><br>để tớ biết chính xác là ai nha 😉</p>
         <button class="btn-go" type="submit">Chuẩn không cần chỉnh ✨</button>
         <p class="name-error" id="name-error" aria-live="polite"></p>
       </form>

@@ -127,6 +127,70 @@ body::before {
 .music-btn.on { animation: music-pulse 1.8s ease-in-out infinite; }
 @keyframes music-pulse { 0%, 100% { box-shadow: 0 4px 12px rgba(0,0,0,.35), 0 0 0 0 rgba(163,222,255,.45); } 50% { box-shadow: 0 4px 12px rgba(0,0,0,.35), 0 0 0 7px rgba(163,222,255,0); } }
 
+/* ===== Thông báo bật loa ===== */
+.sound-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(4,10,32,.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  transition: opacity .35s ease;
+}
+.sound-gate.show { opacity: 1; }
+.sound-gate.hide { opacity: 0; pointer-events: none; }
+.sg-card {
+  position: relative;
+  width: 100%;
+  max-width: 330px;
+  background: var(--ivory, #fffdf8);
+  border-radius: 24px;
+  padding: 26px 24px 22px;
+  text-align: center;
+  box-shadow: 0 25px 60px rgba(0,0,0,.5), 0 0 0 1.5px rgba(217,169,58,.55) inset;
+  transform: scale(.8) translateY(20px);
+  transition: transform .5s var(--bounce);
+}
+.sound-gate.show .sg-card { transform: none; }
+.sound-gate.hide .sg-card { transform: scale(.9); transition-duration: .3s; }
+.sg-icon { position: relative; height: 78px; margin-bottom: 4px; }
+.sg-head { display: inline-block; font-size: 58px; line-height: 78px; animation: sg-bob 1.1s ease-in-out infinite alternate; }
+.sg-note { position: absolute; top: 30px; font-size: 22px; color: var(--blue); opacity: 0; animation: sg-note 2.4s ease-out infinite; }
+.sg-note.n1 { left: 30%; }
+.sg-note.n2 { left: 62%; color: #e0a72f; animation-delay: .8s; }
+.sg-note.n3 { left: 45%; color: #ff8fb1; animation-delay: 1.6s; }
+.sg-title { font-size: 2.1rem; font-weight: 700; color: var(--royal); line-height: 1.1; }
+.sg-text { margin-top: 8px; font-size: .98rem; color: var(--ink); line-height: 1.5; }
+.sg-text b { color: var(--royal); }
+.sg-tip { margin-top: 10px; font-size: .8rem; color: var(--muted); background: var(--ice); border-radius: 10px; padding: 6px 10px; }
+.sg-close {
+  margin-top: 16px;
+  width: 100%;
+  font: inherit;
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 18px;
+  cursor: pointer;
+  background: linear-gradient(100deg, var(--royal), var(--blue), #5fb8f0, var(--blue), var(--royal));
+  background-size: 250% 100%;
+  animation: shimmer 3s linear infinite;
+  box-shadow: 0 8px 18px rgba(20,136,219,.4);
+  transition: transform .15s;
+}
+.sg-close:hover { transform: translateY(-1px) scale(1.02); }
+.sg-close:active { transform: scale(.97); }
+.sg-close:focus-visible { outline: 3px solid var(--sky); outline-offset: 3px; }
+@keyframes sg-bob { from { transform: translateY(2px) rotate(-6deg); } to { transform: translateY(-4px) rotate(6deg); } }
+@keyframes sg-note { 0% { opacity: 0; transform: translateY(0) scale(.7); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-44px) scale(1.15) rotate(15deg); } }
+
 /* Lớp hiệu ứng */
 #fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
 
@@ -374,7 +438,9 @@ body::before {
 }
 .btn-go:hover { background: #0f78c4; transform: translateY(-1px); }
 .btn-go:active { transform: scale(.97); }
-.name-error { min-height: 1.4em; font-size: .9rem; color: #ffc2d1; }
+.name-error { min-height: 1.4em; font-size: .9rem; color: #ffc2d1; text-wrap: balance; }
+.name-hint { font-size: .82rem; line-height: 1.45; color: var(--sky); opacity: .9; margin-top: -2px; }
+.name-hint b { color: #fff; font-weight: 600; }
 
 /* ---- Cảnh kỷ niệm: 2 dải phim chạy nhanh + 3 dòng chữ ---- */
 #scene-memories {
@@ -642,6 +708,8 @@ body::before {
 /* Lời mời */
 .inv-head .eyebrow { text-transform: uppercase; letter-spacing: .32em; font-size: .7em; font-weight: 700; color: var(--gold); }
 .inv-head .guest { font-size: 2.5em; font-weight: 700; color: var(--royal); line-height: 1.12; }
+.inv-head .guest.long { font-size: 2.1em; }    /* họ tên dài: nhỏ lại cho vừa 1 dòng */
+.inv-head .guest.xlong { font-size: 1.8em; }
 .inv-head .lead { font-size: .96em; color: var(--muted); font-weight: 300; text-wrap: balance; }
 
 /* Khung vòm: 3 chibi xếp chồng (mặc định / đương nhiên / bận) */
