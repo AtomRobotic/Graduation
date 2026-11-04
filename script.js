@@ -39,7 +39,17 @@ const CONFIG = {
     "assets/memories/10.webp",
     "assets/memories/11.webp",
     "assets/memories/12.webp",
-  ],   // dải trên chạy theo thứ tự 01 → 12
+    "assets/memories/13.webp",
+    "assets/memories/14.webp",
+    "assets/memories/15.webp",
+    "assets/memories/16.webp",
+    "assets/memories/17.webp",
+    "assets/memories/18.webp",
+    "assets/memories/19.webp",
+    "assets/memories/20.webp",
+    "assets/memories/21.webp",
+    "assets/memories/22.webp",
+  ],   // thứ tự được xáo ngẫu nhiên mỗi lần mở web
 
   // Nhạc nền (lặp lại khi hết bài). Để trống music thì không có nhạc và ẩn nút 🔊.
   music: "assets/music/bgm.mp3",
@@ -293,11 +303,17 @@ function buildFilm() {
     }
     return f;
   };
+  // Nhiều ảnh (>= 16): chia đôi, mỗi dải chạy 1 nửa riêng -> dải ngắn, nhẹ máy, 2 dải không bao giờ trùng ảnh.
+  // Ít ảnh: cả 2 dải dùng chung bộ ảnh, dải dưới lệch nửa vòng.
+  const all = Array.from({ length: n }, (_, i) => i);
+  const half = Math.ceil(n / 2);
+  const rows = n >= 16
+    ? [all.slice(0, half), all.slice(half)]
+    : [all, all.map((i) => (i + half) % n)];
   ["film-a", "film-b"].forEach((id, row) => {
     const track = $(id);
-    // dải dưới bắt đầu lệch nửa vòng để 2 dải không hiện cùng 1 ảnh một lúc
-    const order = Array.from({ length: n }, (_, i) => (i + row * Math.ceil(n / 2)) % n);
-    for (let rep = 0; rep < 2; rep++) order.forEach((i) => track.appendChild(frame(i)));
+    // lặp 2 lần để dải chạy vòng liền mạch
+    for (let rep = 0; rep < 2; rep++) rows[row].forEach((i) => track.appendChild(frame(i)));
   });
 }
 
