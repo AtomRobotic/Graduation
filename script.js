@@ -48,7 +48,7 @@ const CONFIG = {
   newsText: "Tớ tốt nghiệp rồi!",
   // Link Web App của Google Apps Script để nhận câu trả lời "Đương nhiên / Tớ bận rùi"
   // (xem hướng dẫn trong file google-apps-script.gs). Để trống thì chỉ lưu trên máy người xem.
-  rsvpEndpoint: "https://script.google.com/macros/s/AKfycbxizleB397uYs77V2FPi-wbFEv7F5K9kFfA5MAsIb6x8rOO3OEhB5YennVkgJRlEYeV/exec",
+  rsvpEndpoint: "https://script.google.com/macros/s/AKfycbyg5Bl2DVzAbhEX8t8uajhewBdck8VGP0-468DdqugXRv43t7MpDda6VZMe4gl9XrLX/exec",
 };
 // =====================================================
 
