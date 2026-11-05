@@ -11,7 +11,7 @@ const CONFIG = {
   // Ngày giờ bắt đầu, giữ nguyên định dạng và đuôi +07:00 (giờ Việt Nam)
   date: "2026-11-28",              // ngày làm lễ (năm-tháng-ngày)
   sessions: [                      // các khung giờ trong ngày (giờ Việt Nam), thêm/bớt dòng tùy ý
-    { from: "13:00", to: "15:30" },
+    { from: "13:00", to: "15:00" },
     { from: "17:00", to: "18:00" },
   ],
 
