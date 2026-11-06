@@ -473,10 +473,15 @@ body::before {
 .film::after { bottom: 5px; }
 .film-a { top: 7%; }
 .film-b { bottom: 7%; }
-.film-track { display: flex; gap: 10px; height: 100%; width: max-content; will-change: transform; }
-.film-b .film-track { transform: translateX(-50%); }   /* đặt sẵn vị trí xuất phát của dải dưới, vào cảnh không bị giật */
-#scene-memories.active .film-a .film-track { animation: film-left 9s linear infinite; }   /* chạy ngay khi vào cảnh, chỉ 1 chiều */
-#scene-memories.active .film-b .film-track { animation: film-right 10s linear infinite; }
+/* Dải phim được JavaScript đẩy liên tục (xem startFilm trong script.js).
+   Không dùng animation CSS lặp lại: Safari iPhone vẽ lại cả dải ở mỗi vòng nên bị nháy. */
+.film-track {
+  display: flex; gap: 10px; height: 100%; width: max-content;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
 .frame {
   flex: none;
   height: 100%;
@@ -526,8 +531,6 @@ body::before {
 #scene-memories.active .mem-line.l2 { animation: mem-in .8s cubic-bezier(.2,1.2,.4,1) 2.0s both; }
 #scene-memories.active .mem-line.l3 { animation: mem-in .9s cubic-bezier(.2,1.2,.4,1) 3.4s both; }
 
-@keyframes film-left { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-@keyframes film-right { from { transform: translateX(-50%); } to { transform: translateX(0); } }
 @keyframes film-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes mem-in {
   0% { opacity: 0; transform: translateY(24px) scale(.88); filter: blur(8px); }

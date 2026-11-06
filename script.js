@@ -11,8 +11,8 @@ const CONFIG = {
   // Ngày giờ bắt đầu, giữ nguyên định dạng và đuôi +07:00 (giờ Việt Nam)
   date: "2026-11-28",              // ngày làm lễ (năm-tháng-ngày)
   sessions: [                      // các khung giờ trong ngày (giờ Việt Nam), thêm/bớt dòng tùy ý
-    { from: "13:00", to: "15:00" },
-    { from: "17:00", to: "18:00" },
+    { from: "11:00", to: "13:30" },
+    { from: "17:30", to: "18:00" },
   ],
 
   venueName: "Tòa A3",
@@ -296,6 +296,7 @@ function buildFilm() {
       img.src = photos[i % photos.length];
       img.alt = "";
       img.decoding = "async";
+      if (img.decode) img.decode().catch(() => {});   // giải mã sẵn, chạy tới không bị trống
       f.appendChild(img);
     } else {
       f.classList.add("ph");
@@ -316,6 +317,44 @@ function buildFilm() {
     for (let rep = 0; rep < 2; rep++) rows[row].forEach((i) => track.appendChild(frame(i)));
   });
 }
+
+// Cho 2 dải phim chạy liên tục bằng requestAnimationFrame.
+// Mỗi dải gồm 2 bộ ảnh giống nhau; chạy hết đúng 1 bộ thì vị trí quay về đầu -> nối liền, không giật, không nháy.
+const FILM = [
+  { id: "film-a", dir: -1, secs: 9 },    // dải trên chạy sang trái, 1 vòng ~9 giây
+  { id: "film-b", dir: 1, secs: 10 },    // dải dưới chạy sang phải, 1 vòng ~10 giây
+];
+let filmRAF = 0, filmT0 = 0;
+function measureFilm() {
+  FILM.forEach((f) => {
+    const kids = $(f.id).children;
+    const half = kids.length / 2;
+    // độ dài đúng 1 bộ ảnh = khoảng cách từ ảnh đầu bộ 1 tới ảnh đầu bộ 2 (đã tính cả khe giữa các ảnh)
+    f.period = half >= 1 ? kids[half].offsetLeft - kids[0].offsetLeft : 0;
+  });
+}
+function placeFilm(t) {
+  FILM.forEach((f) => {
+    if (!f.period) return;
+    const d = ((t / f.secs) * f.period) % f.period;
+    const x = f.dir < 0 ? -d : d - f.period;
+    $(f.id).style.transform = `translate3d(${x.toFixed(2)}px, 0, 0)`;
+  });
+}
+function filmLoop(ts) {
+  if (!$("scene-memories").classList.contains("active")) { filmRAF = 0; return; }   // rời cảnh: dừng cho nhẹ máy
+  if (!filmT0) filmT0 = ts;
+  placeFilm((ts - filmT0) / 1000);
+  filmRAF = requestAnimationFrame(filmLoop);
+}
+function startFilm() {
+  measureFilm();
+  placeFilm(0);                                  // đặt sẵn vị trí xuất phát trước khi khung phim hiện ra
+  if (FX.reduce) return;                         // người xem tắt chuyển động: để phim đứng yên
+  filmT0 = 0;
+  if (!filmRAF) filmRAF = requestAnimationFrame(filmLoop);
+}
+addEventListener("resize", () => { if (filmRAF) measureFilm(); });
 
 // =====================================================
 //  PHẦN MỞ ĐẦU: các cảnh lần lượt
@@ -350,6 +389,7 @@ const SCRIPT = [
   { // Cảnh 3: thước phim kỷ niệm "4 năm / 1 hành trình / cùng vô vàn kỷ niệm" (không pháo hoa)
     // Không tự chuyển: phim chạy mãi cho tới khi người xem chạm màn hình.
     run() {
+      startFilm();
       showHint(4400);   // hiện "chạm để tiếp tục" sau khi dòng chữ cuối xuất hiện
     },
   },
@@ -751,6 +791,7 @@ document.body.classList.add("locked");
 fillContent();
 initMusic();
 buildFilm();
+measureFilm(); placeFilm(0);   // đặt sẵn vị trí xuất phát của 2 dải phim ngay từ đầu
 makeFloaties();
 tick();
 setInterval(tick, 1000);
